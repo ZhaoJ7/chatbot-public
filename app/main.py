@@ -47,7 +47,7 @@ def _autoplay_audio(file_path: str):
 
 st.title("Ask me about the future!")
 st.image(
-    str(DATA_DIR / "couple-in-future.jpg"),
+    str(DATA_DIR / "raw/couple-in-future.jpg"),
     caption="Jesse and Isabel in the future",
     width=300,
 )
