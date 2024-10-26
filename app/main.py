@@ -2,10 +2,8 @@ import streamlit as st
 from config import DEFAULT_MODEL, DEFAULT_SPEECH_FILE, DATA_DIR
 from src.utils import send_tts_prompt, create_openai_client
 import base64
-import os
 from openai import OpenAI
-
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+import typing as tp
 
 
 USE_SPEECH = True
@@ -34,11 +32,13 @@ Here is some context on their lives in the future:
 * Every Summer and Winter holidays, they go on a holiday to amazing destinations
 """
 
+st.set_page_config(page_title="Future Chatbot", page_icon=":robot_face:")
+
 
 @st.cache_resource
-def create_openai_client_st() -> OpenAI:
+def create_openai_client_st(api_key: tp.Optional[str] = None) -> OpenAI:
     """Wrapper function for create OpenAI client so we can cache the result."""
-    return create_openai_client()
+    return create_openai_client(api_key=api_key)
 
 
 def _autoplay_audio(file_path: str):
@@ -56,7 +56,7 @@ def _autoplay_audio(file_path: str):
         )
 
 
-client = create_openai_client_st()
+client = create_openai_client_st(st.secrets.get("OPENAI_API_KEY"))
 
 st.title("Ask me about the future!")
 st.image(
