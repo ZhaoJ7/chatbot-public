@@ -65,6 +65,11 @@ def _autoplay_audio(buffer: BytesIO):
 
 client = create_openai_client_st(st.secrets.get("OPENAI_API_KEY"))
 st.title("Ask me about the future!")
+st.image(
+    str(DATA_DIR / "raw/edith-future.jpg"),
+    caption="Edith playing with her cat in the future",
+    width=300,
+)
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = DEFAULT_MODEL
