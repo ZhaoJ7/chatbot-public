@@ -102,7 +102,9 @@ if prompt := st.chat_input("What's on your mind Isabel?"):
             response = st.write_stream(completion)
         else:
             response = completion.choices[0].message.content
-            buffer = send_tts_prompt(input=response, client=client)
+            buffer = send_tts_prompt(
+                input=response, client=client, write_output_to_path=False
+            )
             _autoplay_audio(buffer)
 
     st.session_state.messages.append({"role": "assistant", "content": response})
