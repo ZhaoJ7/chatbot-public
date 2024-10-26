@@ -4,6 +4,7 @@ from src.utils import send_tts_prompt, create_openai_client
 import base64
 from openai import OpenAI
 import typing as tp
+from io import BytesIO
 
 
 USE_SPEECH = True
@@ -41,8 +42,9 @@ def create_openai_client_st(api_key: tp.Optional[str] = None) -> OpenAI:
     return create_openai_client(api_key=api_key)
 
 
-def _autoplay_audio(file_path: str):
-    with open(file_path, "rb") as f:
+def _autoplay_audio(buffer: BytesIO):
+
+    with buffer as f:
         data = f.read()
         b64 = base64.b64encode(data).decode()
         md = f"""
@@ -100,9 +102,7 @@ if prompt := st.chat_input("What's on your mind Isabel?"):
             response = st.write_stream(completion)
         else:
             response = completion.choices[0].message.content
-            speech_path = send_tts_prompt(
-                input=response, output_path=DEFAULT_SPEECH_FILE, client=client
-            )
-            _autoplay_audio(str(speech_path))
+            buffer = send_tts_prompt(input=response, client=client)
+            _autoplay_audio(buffer)
 
     st.session_state.messages.append({"role": "assistant", "content": response})

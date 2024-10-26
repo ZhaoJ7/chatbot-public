@@ -8,6 +8,7 @@ import openai
 import typing as tp
 from pathlib import Path
 from openai import OpenAI
+from io import BytesIO
 
 
 def create_openai_client(api_key: tp.Optional[str] = None, **kwargs) -> OpenAI:
@@ -46,9 +47,10 @@ def send_tts_prompt(
     input: str,
     voice: str = DEFAULT_VOICE,
     model: str = DEFAULT_TTS_MODEL,
-    output_path: tp.Union[str, Path] = DEFAULT_SPEECH_FILE,
     client: tp.Optional[openai.OpenAI] = None,
-) -> Path:
+    write_output_to_path: bool = False,
+    output_path: tp.Optional[tp.Union[str, Path]] = DEFAULT_SPEECH_FILE,
+) -> BytesIO:
 
     if client is None:
         client = create_openai_client()
@@ -61,6 +63,16 @@ def send_tts_prompt(
         voice=voice,
         input=input,
     )
-    response.write_to_file(output_path)
 
-    return output_path
+    # Write the output to an BytesIO buffer
+    buffer = BytesIO()
+    buffer.write(response.content)
+    buffer.seek(0)
+
+    if write_output_to_path:
+        assert (
+            output_path is not None
+        ), "If writing output to path, the path must be specified."
+        response.write_to_file(output_path)
+
+    return buffer
