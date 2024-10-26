@@ -1,7 +1,10 @@
 import streamlit as st
-from config import client as openai_client, DEFAULT_MODEL, DEFAULT_SPEECH_FILE, DATA_DIR
-from src.utils import send_tts_prompt
+from config import DEFAULT_MODEL, DEFAULT_SPEECH_FILE, DATA_DIR
+from src.utils import send_tts_prompt, create_openai_client
 import base64
+from openai import OpenAI
+import typing as tp
+
 
 USE_SPEECH = True
 
@@ -29,6 +32,14 @@ Here is some context on their lives in the future:
 * Every Summer and Winter holidays, they go on a holiday to amazing destinations
 """
 
+st.set_page_config(page_title="Future Chatbot", page_icon=":robot_face:")
+
+
+@st.cache_resource
+def create_openai_client_st(api_key: tp.Optional[str] = None) -> OpenAI:
+    """Wrapper function for create OpenAI client so we can cache the result."""
+    return create_openai_client(api_key=api_key)
+
 
 def _autoplay_audio(file_path: str):
     with open(file_path, "rb") as f:
@@ -44,6 +55,8 @@ def _autoplay_audio(file_path: str):
             unsafe_allow_html=True,
         )
 
+
+client = create_openai_client_st(st.secrets.get("OPENAI_API_KEY"))
 
 st.title("Ask me about the future!")
 st.image(
@@ -74,7 +87,7 @@ if prompt := st.chat_input("What's on your mind Isabel?"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        completion = openai_client.chat.completions.create(
+        completion = client.chat.completions.create(
             model=st.session_state["openai_model"],
             messages=[
                 {"role": m["role"], "content": m["content"]}
@@ -88,7 +101,7 @@ if prompt := st.chat_input("What's on your mind Isabel?"):
         else:
             response = completion.choices[0].message.content
             speech_path = send_tts_prompt(
-                input=response, output_path=DEFAULT_SPEECH_FILE
+                input=response, output_path=DEFAULT_SPEECH_FILE, client=client
             )
             _autoplay_audio(str(speech_path))
 
