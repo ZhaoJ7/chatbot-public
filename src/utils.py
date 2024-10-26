@@ -1,5 +1,4 @@
 from config import (
-    client as openai_client,
     DEFAULT_MODEL,
     DEFAULT_TTS_MODEL,
     DEFAULT_VOICE,
@@ -8,14 +7,29 @@ from config import (
 import openai
 import typing as tp
 from pathlib import Path
+from openai import OpenAI
+
+
+def create_openai_client(api_key: tp.Optional[str] = None, **kwargs) -> OpenAI:
+
+    # If the API key is None, we use load dot env to add the key from the .env file
+    if api_key is None:
+        from dotenv import load_dotenv
+
+        load_dotenv()
+
+    return OpenAI(api_key=api_key)
 
 
 def send_basic_prompt(
     user_prompt: str,
     system_prompt: tp.Optional[str] = None,
     model: str = DEFAULT_MODEL,
-    client: openai.OpenAI = openai_client,
+    client: tp.Optional[openai.OpenAI] = None,
 ) -> str:
+
+    if client is None:
+        client = create_openai_client()
 
     messages = []
     if system_prompt is not None:
@@ -33,12 +47,16 @@ def send_tts_prompt(
     voice: str = DEFAULT_VOICE,
     model: str = DEFAULT_TTS_MODEL,
     output_path: tp.Union[str, Path] = DEFAULT_SPEECH_FILE,
+    client: tp.Optional[openai.OpenAI] = None,
 ) -> Path:
+
+    if client is None:
+        client = create_openai_client()
 
     if isinstance(output_path, str):
         output_path = Path(output_path)
 
-    response = openai_client.audio.speech.create(
+    response = client.audio.speech.create(
         model=model,
         voice=voice,
         input=input,
